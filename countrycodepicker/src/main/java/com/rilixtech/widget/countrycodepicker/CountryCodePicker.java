@@ -61,15 +61,12 @@ public class CountryCodePicker extends RelativeLayout {
   private TextView mRegisteredPhoneNumberTextView;
   private RelativeLayout mRlyHolder;
   private ImageView mImvArrow;
-  private ImageView mImvFlag;
-  private LinearLayout mLlyFlagHolder;
   private Country mSelectedCountry;
   private Country mDefaultCountry;
   private RelativeLayout mRlyClickConsumer;
   private View.OnClickListener mCountryCodeHolderClickListener;
 
   private boolean mHideNameCode = false;
-  private boolean mShowFlag = true;
   private boolean mShowFullName = false;
   private boolean mUseFullName = false;
   private boolean mSelectionDialogShowSearch = true;
@@ -146,8 +143,7 @@ public class CountryCodePicker extends RelativeLayout {
     mTvSelectedCountry = findViewById(R.id.selected_country_tv);
     mRlyHolder = findViewById(R.id.country_code_holder_rly);
     mImvArrow = findViewById(R.id.arrow_imv);
-    mImvFlag = findViewById(R.id.flag_imv);
-    mLlyFlagHolder = findViewById(R.id.flag_holder_lly);
+
     mRlyClickConsumer = findViewById(R.id.click_consumer_rly);
 
     applyCustomProperty(attrs);
@@ -190,8 +186,6 @@ public class CountryCodePicker extends RelativeLayout {
 
       applyCustomPropertyOfDefaultCountryNameCode(a);
 
-      showFlag(a.getBoolean(R.styleable.CountryCodePicker_ccp_showFlag, true));
-
       applyCustomPropertyOfColor(a);
 
       // text font
@@ -202,7 +196,6 @@ public class CountryCodePicker extends RelativeLayout {
       int textSize = a.getDimensionPixelSize(R.styleable.CountryCodePicker_ccp_textSize, 0);
       if (textSize > 0) {
         mTvSelectedCountry.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-        setFlagSize(textSize);
         setArrowSize(textSize);
       } else { //no text size specified
         DisplayMetrics dm = getContext().getResources().getDisplayMetrics();
@@ -308,8 +301,6 @@ public class CountryCodePicker extends RelativeLayout {
     if (mOnCountryChangeListener != null) {
       mOnCountryChangeListener.onCountrySelected(selectedCountry);
     }
-
-    mImvFlag.setImageResource(CountryUtils.getFlagDrawableResId(selectedCountry));
 
     if (mIsHintEnabled) setPhoneNumberHint();
 
@@ -961,7 +952,6 @@ public class CountryCodePicker extends RelativeLayout {
     if (textSize > 0) {
       mTvSelectedCountry.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
       setArrowSize(textSize);
-      setFlagSize(textSize);
     }
   }
 
@@ -1059,20 +1049,6 @@ public class CountryCodePicker extends RelativeLayout {
     mOnCountryChangeListener = onCountryChangeListener;
   }
 
-  /**
-   * Modifies size of flag in CCP view
-   *
-   * @param flagSize size in pixels
-   */
-  public void setFlagSize(int flagSize) {
-    mImvFlag.getLayoutParams().height = flagSize;
-    mImvFlag.requestLayout();
-  }
-
-  public void showFlag(boolean showFlag) {
-    mShowFlag = showFlag;
-    mLlyFlagHolder.setVisibility(showFlag ? VISIBLE : GONE);
-  }
 
   /**
    * Show full country name instead only iso name.

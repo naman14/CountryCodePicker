@@ -6,32 +6,14 @@
     android:id="@+id/item_country_rly"
     >
 
-  <LinearLayout
-      android:id="@+id/flag_holder_lly"
-      android:layout_width="40dp"
-      android:layout_height="50dp"
-      android:layout_marginLeft="@dimen/google_1x"
-      android:layout_marginRight="@dimen/google_1x"
-      android:gravity="center"
-      >
-
-    <ImageView
-        android:id="@+id/flag_imv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:src="@drawable/flag_indonesia"
-        />
-  </LinearLayout>
 
   <TextView
       android:id="@+id/country_name_tv"
       android:layout_width="match_parent"
       android:layout_height="50dp"
       android:layout_centerVertical="true"
-      android:layout_toEndOf="@+id/flag_holder_lly"
+      android:layout_marginLeft="16dp"
       android:layout_toLeftOf="@+id/code_tv"
-      android:layout_toRightOf="@+id/flag_holder_lly"
       android:layout_toStartOf="@+id/code_tv"
       android:gravity="center_vertical"
       android:text="Indonesia (ID)"

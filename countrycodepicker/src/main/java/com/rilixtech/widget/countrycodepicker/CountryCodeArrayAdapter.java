@@ -23,8 +23,6 @@ public class CountryCodeArrayAdapter extends ArrayAdapter<Country> {
   private static class ViewHolder {
     RelativeLayout rlyMain;
     TextView tvName, tvCode;
-    ImageView imvFlag;
-    LinearLayout llyFlagHolder;
     View viewDivider;
   }
 
@@ -41,8 +39,7 @@ public class CountryCodeArrayAdapter extends ArrayAdapter<Country> {
       viewHolder.rlyMain = convertView.findViewById(R.id.item_country_rly);
       viewHolder.tvName = convertView.findViewById(R.id.country_name_tv);
       viewHolder.tvCode = convertView.findViewById(R.id.code_tv);
-      viewHolder.imvFlag = convertView.findViewById(R.id.flag_imv);
-      viewHolder.llyFlagHolder = convertView.findViewById(R.id.flag_holder_lly);
+
       viewHolder.viewDivider = convertView.findViewById(R.id.preference_divider_view);
       convertView.setTag(viewHolder);
     } else {
@@ -57,14 +54,12 @@ public class CountryCodeArrayAdapter extends ArrayAdapter<Country> {
       viewHolder.viewDivider.setVisibility(View.VISIBLE);
       viewHolder.tvName.setVisibility(View.GONE);
       viewHolder.tvCode.setVisibility(View.GONE);
-      viewHolder.llyFlagHolder.setVisibility(View.GONE);
       return;
     }
 
     viewHolder.viewDivider.setVisibility(View.GONE);
     viewHolder.tvName.setVisibility(View.VISIBLE);
     viewHolder.tvCode.setVisibility(View.VISIBLE);
-    viewHolder.llyFlagHolder.setVisibility(View.VISIBLE);
     Context ctx = viewHolder.tvName.getContext();
     String name = country.getName();
     String iso = country.getIso().toUpperCase();
@@ -88,7 +83,6 @@ public class CountryCodeArrayAdapter extends ArrayAdapter<Country> {
       viewHolder.tvCode.setTypeface(typeface);
       viewHolder.tvName.setTypeface(typeface);
     }
-    viewHolder.imvFlag.setImageResource(CountryUtils.getFlagDrawableResId(country));
     int color = mCountryCodePicker.getDialogTextColor();
     if (color != mCountryCodePicker.getDefaultContentColor()) {
       viewHolder.tvCode.setTextColor(color);
