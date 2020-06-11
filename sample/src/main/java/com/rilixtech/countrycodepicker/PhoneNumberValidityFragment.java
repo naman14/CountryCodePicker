@@ -54,17 +54,7 @@ public class PhoneNumberValidityFragment extends Fragment {
     private void assignViews() {
         ccp=(CountryCodePicker)rootView.findViewById(R.id.ccp);
         edtPhoneNumber = (EditText) rootView.findViewById(R.id.phone_number_edt);
-        ccp.registerPhoneNumberTextView(edtPhoneNumber);
         buttonNext = (Button) rootView.findViewById(R.id.button_next);
         btnCheck = (Button) rootView.findViewById(R.id.check_btn);
-        btnCheck.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                if(ccp.isValid()) {
-                    Toast.makeText(getContext(), "number " + ccp.getFullNumber() + " is valid.", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(getContext(), "number " + ccp.getFullNumber() + " not valid!!!", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
     }
 }

@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Build;
-import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.telephony.TelephonyManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,13 +15,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import android.widget.TextView;
-import io.michaelrocks.libphonenumber.android.NumberParseException;
-import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
-import io.michaelrocks.libphonenumber.android.Phonenumber;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -52,13 +47,9 @@ public class CountryCodePicker extends RelativeLayout {
   private int mDefaultCountryCode;
   private String mDefaultCountryNameCode;
 
-  //Util
-  private PhoneNumberUtil mPhoneUtil;
-  private PhoneNumberWatcher mPhoneNumberWatcher;
   PhoneNumberInputValidityListener mPhoneNumberInputValidityListener;
 
   private TextView mTvSelectedCountry;
-  private TextView mRegisteredPhoneNumberTextView;
   private RelativeLayout mRlyHolder;
   private ImageView mImvArrow;
   private Country mSelectedCountry;
@@ -160,7 +151,6 @@ public class CountryCodePicker extends RelativeLayout {
   }
 
   private void applyCustomProperty(AttributeSet attrs) {
-    mPhoneUtil = PhoneNumberUtil.createInstance(getContext());
     Resources.Theme theme = getContext().getTheme();
     TypedArray a = theme.obtainStyledAttributes(attrs, R.styleable.CountryCodePicker, 0, 0);
 
@@ -293,16 +283,9 @@ public class CountryCodePicker extends RelativeLayout {
       selectedCountry = CountryUtils.getByCode(ctx, mPreferredCountries, mDefaultCountryCode);
     }
 
-    if (mRegisteredPhoneNumberTextView != null) {
-      String ISO = selectedCountry.getIso().toUpperCase();
-      setPhoneNumberWatcherToTextView(mRegisteredPhoneNumberTextView, ISO);
-    }
-
     if (mOnCountryChangeListener != null) {
       mOnCountryChangeListener.onCountrySelected(selectedCountry);
     }
-
-    if (mIsHintEnabled) setPhoneNumberHint();
 
     setSelectedCountryText(ctx, selectedCountry);
   }
@@ -384,24 +367,6 @@ public class CountryCodePicker extends RelativeLayout {
    */
   @SuppressWarnings("unused") public boolean isPhoneAutoFormatterEnabled() {
     return mIsEnablePhoneNumberWatcher;
-  }
-
-  /**
-   * Enable or disable auto formatter for phone number inserted to TextView.
-   * You need to set an EditText for phone number with `registerPhoneNumberTextView()`
-   * to make use of this.
-   *
-   * @param isEnable return if phone auto formatter enabled or not.
-   */
-  @SuppressWarnings("unused") public void enablePhoneAutoFormatter(boolean isEnable) {
-    mIsEnablePhoneNumberWatcher = isEnable;
-    if (isEnable) {
-      if (mPhoneNumberWatcher == null) {
-        mPhoneNumberWatcher = new PhoneNumberWatcher(getSelectedCountryNameCode());
-      }
-    } else {
-      mPhoneNumberWatcher = null;
-    }
   }
 
   @SuppressWarnings("unused") private OnClickListener getCountryCodeHolderClickListener() {
@@ -811,103 +776,6 @@ public class CountryCodePicker extends RelativeLayout {
   }
 
   /**
-   * All functions that work with fullNumber need an editText to write and read carrier number of
-   * full number.
-   * An editText for carrier number must be registered in order to use functions like
-   * setFullNumber() and getFullNumber().
-   *
-   * @param textView - an editText where user types carrier number ( the part of full
-   * number other than country code).
-   */
-  @SuppressWarnings("unused")
-  public void registerPhoneNumberTextView(TextView textView) {
-    setRegisteredPhoneNumberTextView(textView);
-    if (mIsHintEnabled) setPhoneNumberHint();
-  }
-
-  @SuppressWarnings("unused") public TextView getRegisteredPhoneNumberTextView() {
-    return mRegisteredPhoneNumberTextView;
-  }
-
-  void setRegisteredPhoneNumberTextView(TextView phoneNumberTextView) {
-    mRegisteredPhoneNumberTextView = phoneNumberTextView;
-    if (mIsEnablePhoneNumberWatcher) {
-      if (mPhoneNumberWatcher == null) {
-        mPhoneNumberWatcher = new PhoneNumberWatcher(getDefaultCountryNameCode());
-      }
-      mRegisteredPhoneNumberTextView.addTextChangedListener(mPhoneNumberWatcher);
-    }
-  }
-
-  private void setPhoneNumberWatcherToTextView(TextView textView, String countryNameCode) {
-    if (!mIsEnablePhoneNumberWatcher) return;
-
-    if (mPhoneNumberWatcher == null) {
-      mPhoneNumberWatcher = new PhoneNumberWatcher(countryNameCode);
-      textView.addTextChangedListener(mPhoneNumberWatcher);
-    } else {
-      if (!mPhoneNumberWatcher.getPreviousCountryCode().equalsIgnoreCase(countryNameCode)) {
-        textView.removeTextChangedListener(mPhoneNumberWatcher);
-        mPhoneNumberWatcher = new PhoneNumberWatcher(countryNameCode);
-        textView.addTextChangedListener(mPhoneNumberWatcher);
-      }
-    }
-  }
-
-  /**
-   * This function combines selected country code from CCP and carrier number from @param
-   * editTextCarrierNumber
-   *
-   * @return Full number is countryCode + carrierNumber i.e countryCode= 91 and carrier number=
-   * 8866667722, this will return "918866667722"
-   */
-  public String getFullNumber() {
-    String fullNumber = mSelectedCountry.getPhoneCode();
-    if (mRegisteredPhoneNumberTextView == null) {
-      Log.w(TAG, getContext().getString(R.string.error_unregister_carrier_number));
-    } else {
-      fullNumber += mRegisteredPhoneNumberTextView.getText().toString();
-    }
-    return fullNumber;
-  }
-
-  /**
-   * Separate out country code and carrier number from fullNumber.
-   * Sets country of separated country code in CCP and carrier number as text of
-   * editTextCarrierNumber
-   * If no valid country code is found from full number, CCP will be set to default country code and
-   * full number will be set as carrier number to editTextCarrierNumber.
-   *
-   * @param fullNumber is combination of country code and carrier number,
-   * (country_code+carrier_number) for example if country is India (+91) and carrier/mobile number
-   * is 8866667722 then full number will be 9188666667722 or +918866667722. "+" in starting of
-   * number is optional.
-   */
-  @SuppressWarnings("unused")
-  public void setFullNumber(String fullNumber) {
-    Country country = CountryUtils.getByNumber(getContext(), mPreferredCountries, fullNumber);
-    setSelectedCountry(country);
-    String carrierNumber = detectCarrierNumber(fullNumber, country);
-    if (mRegisteredPhoneNumberTextView == null) {
-      Log.w(TAG, getContext().getString(R.string.error_unregister_carrier_number));
-    } else {
-      mRegisteredPhoneNumberTextView.setText(carrierNumber);
-    }
-  }
-
-  /**
-   * This function combines selected country code from CCP and carrier number from @param
-   * editTextCarrierNumber and prefix "+"
-   *
-   * @return Full number is countryCode + carrierNumber i.e countryCode= 91 and carrier number=
-   * 8866667722, this will return "+918866667722"
-   */
-  @SuppressWarnings("unused")
-  public String getFullNumberWithPlus() {
-    return getContext().getString(R.string.phone_code, getFullNumber());
-  }
-
-  /**
    * @return content color of CCP's text and small downward arrow.
    */
   @SuppressWarnings("unused")
@@ -1111,16 +979,6 @@ public class CountryCodePicker extends RelativeLayout {
   }
 
   /**
-   * Enable hint for phone number sample in registered TextView with registerPhoneNumberTextView()
-   *
-   * @param hintEnabled disable or enable hint.
-   */
-  @SuppressWarnings("unused") public void enableHint(boolean hintEnabled) {
-    mIsHintEnabled = hintEnabled;
-    if (mIsHintEnabled) setPhoneNumberHint();
-  }
-
-  /**
    * Hide or show phone code
    *
    * @param hide show or not show the phone code.
@@ -1128,126 +986,6 @@ public class CountryCodePicker extends RelativeLayout {
   @SuppressWarnings("unused") public void hidePhoneCode(boolean hide) {
     mHidePhoneCode = hide;
     setSelectedCountry(mSelectedCountry);
-  }
-
-  private void setPhoneNumberHint() {
-    // don't set phone number hint for null textView and country.
-    if (mRegisteredPhoneNumberTextView == null
-        || mSelectedCountry == null
-        || mSelectedCountry.getIso() == null) {
-      return;
-    }
-
-    String iso = mSelectedCountry.getIso().toUpperCase();
-    PhoneNumberUtil.PhoneNumberType mobile = PhoneNumberUtil.PhoneNumberType.MOBILE;
-    Phonenumber.PhoneNumber phoneNumber = mPhoneUtil.getExampleNumberForType(iso, mobile);
-    if (phoneNumber == null) {
-      mRegisteredPhoneNumberTextView.setHint("");
-      return;
-    }
-
-    if (BuildConfig.DEBUG) {
-      Log.d(TAG, "setPhoneNumberHint called");
-      Log.d(TAG, "mSelectedCountry.getIso() = " + mSelectedCountry.getIso());
-      Log.d(TAG,
-          "hint = " + mPhoneUtil.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.NATIONAL));
-    }
-
-    String hint = mPhoneUtil.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
-    //if (mRegisteredPhoneNumberTextView.getHint() != null) {
-    //  mRegisteredPhoneNumberTextView.setHint("");
-    //}
-    mRegisteredPhoneNumberTextView.setHint(hint);
-  }
-
-  private class PhoneNumberWatcher extends PhoneNumberFormattingTextWatcher {
-    private boolean lastValidity;
-    private String previousCountryCode = "";
-
-    String getPreviousCountryCode() {
-      return previousCountryCode;
-    }
-
-    @SuppressWarnings("unused") public PhoneNumberWatcher() {
-      super();
-    }
-
-    //TODO solve it! support for android kitkat
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public PhoneNumberWatcher(String countryCode) {
-      super(countryCode);
-      previousCountryCode = countryCode;
-    }
-
-    @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-      super.onTextChanged(s, start, before, count);
-      try {
-        String iso = null;
-        if (mSelectedCountry != null) iso = mSelectedCountry.getPhoneCode().toUpperCase();
-        Phonenumber.PhoneNumber phoneNumber = mPhoneUtil.parse(s.toString(), iso);
-        iso = mPhoneUtil.getRegionCodeForNumber(phoneNumber);
-        if (iso != null) {
-          //int countryIdx = mCountries.indexOfIso(iso);
-          //mCountrySpinner.setSelection(countryIdx);
-        }
-      } catch (NumberParseException ignored) {
-      }
-
-      if (mPhoneNumberInputValidityListener != null) {
-        boolean validity = isValid();
-        if (validity != lastValidity) {
-          mPhoneNumberInputValidityListener.onFinish(CountryCodePicker.this, validity);
-        }
-        lastValidity = validity;
-      }
-    }
-  }
-
-  /**
-   * Get number
-   *
-   * @return Phone number in E.164 format | null on error
-   */
-  @SuppressWarnings("unused") public String getNumber() {
-    Phonenumber.PhoneNumber phoneNumber = getPhoneNumber();
-
-    if (phoneNumber == null) return null;
-
-    if (mRegisteredPhoneNumberTextView == null) {
-      Log.w(TAG, getContext().getString(R.string.error_unregister_carrier_number));
-      return null;
-    }
-
-    return mPhoneUtil.format(phoneNumber, PhoneNumberUtil.PhoneNumberFormat.E164);
-  }
-
-  /**
-   * Get PhoneNumber object
-   *
-   * @return Phone Number | null on error
-   */
-  @SuppressWarnings("unused") public Phonenumber.PhoneNumber getPhoneNumber() {
-    try {
-      String iso = null;
-      if (mSelectedCountry != null) iso = mSelectedCountry.getIso().toUpperCase();
-      if (mRegisteredPhoneNumberTextView == null) {
-        Log.w(TAG, getContext().getString(R.string.error_unregister_carrier_number));
-        return null;
-      }
-      return mPhoneUtil.parse(mRegisteredPhoneNumberTextView.getText().toString(), iso);
-    } catch (NumberParseException ignored) {
-      return null;
-    }
-  }
-
-  /**
-   * Check if number is valid
-   *
-   * @return boolean
-   */
-  @SuppressWarnings("unused") public boolean isValid() {
-    Phonenumber.PhoneNumber phoneNumber = getPhoneNumber();
-    return phoneNumber != null && mPhoneUtil.isValidNumber(phoneNumber);
   }
 
   @SuppressWarnings("unused")
@@ -1313,10 +1051,6 @@ public class CountryCodePicker extends RelativeLayout {
       }
     }
 
-    if (mIsEnablePhoneNumberWatcher && mPhoneNumberWatcher == null) {
-      mPhoneNumberWatcher = new PhoneNumberWatcher(countryCode);
-    }
-
     setDefaultCountryUsingNameCode(countryCode);
     setSelectedCountry(getDefaultCountry());
   }
@@ -1330,7 +1064,6 @@ public class CountryCodePicker extends RelativeLayout {
   public void enableSetCountryByTimeZone(boolean isEnabled) {
     if (isEnabled) {
       if (mDefaultCountryNameCode != null && !mDefaultCountryNameCode.isEmpty()) return;
-      if (mRegisteredPhoneNumberTextView != null) return;
       if (mSetCountryByTimeZone) {
         TimeZone tz = TimeZone.getDefault();
 

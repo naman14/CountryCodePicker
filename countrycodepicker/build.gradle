@@ -25,9 +25,5 @@ android {
 }
 
 dependencies {
-//  implementation fileTree(dir: 'libs', include: ['*.jar'])
-//  testImplementation 'junit:junit:4.12'
-//  api 'io.michaelrocks:libphonenumber-android:8.10.7'
-  api 'io.michaelrocks:libphonenumber-android:8.10.16'
 
 }

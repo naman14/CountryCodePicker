@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.rilixtech.widget.countrycodepicker.CountryCodePicker;
-import io.michaelrocks.libphonenumber.android.PhoneNumberUtil;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -67,26 +66,6 @@ public class FullNumberFragment extends Fragment {
     }
 
     private void setClickListener() {
-        buttonLoadNumber.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ccpLoadNumber.setFullNumber(editTextLoadFullNumber.getText().toString());
-            }
-        });
-
-        buttonGetNumber.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                editTextGetFullNumber.setText(ccpGetNumber.getFullNumber());
-            }
-        });
-
-        buttonGetNumberWithPlus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                editTextGetFullNumber.setText(ccpGetNumber.getFullNumberWithPlus());
-            }
-        });
 
         buttonNext.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,22 +76,22 @@ public class FullNumberFragment extends Fragment {
     }
 
     private void registerCarrierEditText() {
-        ccpLoadNumber.registerPhoneNumberTextView(editTextLoadCarrierNumber);
-        ccpLoadNumber.setPhoneNumberInputValidityListener(new CountryCodePicker.PhoneNumberInputValidityListener() {
-            @Override public void onFinish(CountryCodePicker ccp, boolean isValid) {
-                Log.d(TAG, ccp.getPhoneNumber() + " " + (isValid ? "is valid": "not valid"));
-            }
-        });
-
-        final PhoneNumberUtil mPhoneUtil = PhoneNumberUtil.createInstance(getContext());
-        ccpGetNumber.registerPhoneNumberTextView(editTextGetCarrierNumber);
-        ccpGetNumber.setPhoneNumberInputValidityListener(new CountryCodePicker.PhoneNumberInputValidityListener() {
-            @Override public void onFinish(CountryCodePicker ccp, boolean isValid) {
-                Log.d(TAG, ccp.getPhoneNumber() + " " + (isValid ? "is valid": "not valid"));
-                Log.d(TAG, "PhoneNumberFormat.E164 = " + mPhoneUtil.format(ccp.getPhoneNumber(),
-                    PhoneNumberUtil.PhoneNumberFormat.E164));
-            }
-        });
+//        ccpLoadNumber.registerPhoneNumberTextView(editTextLoadCarrierNumber);
+//        ccpLoadNumber.setPhoneNumberInputValidityListener(new CountryCodePicker.PhoneNumberInputValidityListener() {
+//            @Override public void onFinish(CountryCodePicker ccp, boolean isValid) {
+//                Log.d(TAG, ccp.getPhoneNumber() + " " + (isValid ? "is valid": "not valid"));
+//            }
+//        });
+//
+//        final PhoneNumberUtil mPhoneUtil = PhoneNumberUtil.createInstance(getContext());
+//        ccpGetNumber.registerPhoneNumberTextView(editTextGetCarrierNumber);
+//        ccpGetNumber.setPhoneNumberInputValidityListener(new CountryCodePicker.PhoneNumberInputValidityListener() {
+//            @Override public void onFinish(CountryCodePicker ccp, boolean isValid) {
+//                Log.d(TAG, ccp.getPhoneNumber() + " " + (isValid ? "is valid": "not valid"));
+//                Log.d(TAG, "PhoneNumberFormat.E164 = " + mPhoneUtil.format(ccp.getPhoneNumber(),
+//                    PhoneNumberUtil.PhoneNumberFormat.E164));
+//            }
+//        });
     }
 
     private void assignView() {
